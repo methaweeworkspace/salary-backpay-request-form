@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>แบบฟอร์มขอเบิกตกเบิกเงินเดือน</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:#0f2044; --navy-mid:#1a3260; --blue:#1e4db7;
+  --accent:#f0a500; --accent-light:#ffd166;
+  --white:#ffffff; --gray-100:#f0f2f8; --gray-200:#dde3f0;
+  --gray-400:#9aa3bf; --gray-600:#5a6485; --text:#1a2340;
+  --error:#e53e3e; --success:#38a169; --radius:12px; --radius-sm:8px;
+  --shadow-lg:0 8px 40px rgba(15,32,68,0.18);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{
+  font-family:'IBM Plex Sans Thai','Sarabun',sans-serif;
+  background:linear-gradient(135deg,#0f2044 0%,#1a3260 50%,#1e4db7 100%);
+  min-height:100vh; display:flex; align-items:flex-start;
+  justify-content:center; padding:32px 16px 64px; position:relative;
+}
+body::before{
+  content:''; position:fixed; inset:0; pointer-events:none;
+  background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E");
+}
+.card{
+  background:var(--white); border-radius:20px; box-shadow:var(--shadow-lg);
+  width:100%; max-width:660px; overflow:hidden;
+}
+
+/* HEADER */
+.header{
+  background:linear-gradient(120deg,var(--navy) 0%,var(--blue) 100%);
+  padding:28px 32px 22px; position:relative; overflow:hidden;
+}
+.header::after{
+  content:''; position:absolute; right:-40px; top:-40px;
+  width:160px; height:160px; border-radius:50%;
+  background:rgba(240,165,0,0.15);
+}
+.header-tag{
+  display:inline-block; background:rgba(240,165,0,0.2);
+  border:1px solid var(--accent); color:var(--accent-light);
+  font-size:11px; font-weight:600; letter-spacing:1.5px;
+  text-transform:uppercase; padding:4px 12px; border-radius:20px; margin-bottom:10px;
+}
+.header h1{color:var(--white);font-size:21px;font-weight:700;line-height:1.3;}
+.header p{color:rgba(255,255,255,0.6);font-size:13px;margin-top:5px;}
+
+/* STEPPER */
+.stepper{
+  display:flex; align-items:center; padding:18px 28px;
+  background:var(--gray-100); border-bottom:1px solid var(--gray-200);
+}
+.step-item{display:flex;align-items:center;gap:9px;flex:1;}
+.step-circle{
+  width:34px;height:34px;border-radius:50%;display:flex;
+  align-items:center;justify-content:center;font-weight:700;font-size:13px;
+  flex-shrink:0;transition:all 0.3s;
+  background:var(--gray-200);color:var(--gray-400);border:2px solid var(--gray-200);
+}
+.step-item.active .step-circle{background:var(--blue);color:#fff;border-color:var(--blue);box-shadow:0 0 0 4px rgba(30,77,183,0.15);}
+.step-item.done .step-circle{background:var(--success);color:#fff;border-color:var(--success);}
+.step-label{font-size:11.5px;font-weight:600;color:var(--gray-400);line-height:1.3;}
+.step-item.active .step-label{color:var(--blue);}
+.step-item.done .step-label{color:var(--success);}
+.step-line{height:2px;flex:0 0 20px;background:var(--gray-200);transition:background 0.3s;margin:0 3px;}
+.step-line.done{background:var(--success);}
+
+/* BODY */
+.form-body{padding:26px 30px;}
+.step-panel{display:none;animation:fadeIn 0.3s ease;}
+.step-panel.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+.section-title{
+  font-size:15px;font-weight:700;color:var(--navy);
+  margin-bottom:18px;padding-bottom:10px;
+  border-bottom:2px solid var(--gray-100);
+  display:flex;align-items:center;gap:8px;
+}
+
+.field-group{margin-bottom:16px;}
+label{display:block;font-size:13px;font-weight:600;color:var(--gray-600);margin-bottom:6px;}
+.req{color:var(--error);margin-left:2px;}
+
+input[type=text],input[type=tel],textarea{
+  width:100%;padding:11px 14px;
+  border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);
+  font-family:inherit;font-size:14px;color:var(--text);background:var(--white);
+  transition:border-color 0.2s,box-shadow 0.2s;outline:none;
+}
+input:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(30,77,183,0.1);}
+input.error,textarea.error{border-color:var(--error)!important;}
+.error-msg{color:var(--error);font-size:12px;margin-top:4px;display:none;}
+.error-msg.show{display:block;}
+textarea{resize:vertical;min-height:88px;line-height:1.6;}
+
+/* ===== PAY TYPE LIST ===== */
+.paytype-list{display:flex;flex-direction:column;gap:8px;}
+
+.paytype-row{
+  border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);
+  overflow:hidden;transition:border-color 0.2s,box-shadow 0.2s;background:var(--white);
+}
+.paytype-row.selected{border-color:var(--blue);box-shadow:0 2px 10px rgba(30,77,183,0.1);}
+
+.paytype-header{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 14px;cursor:pointer;user-select:none;
+  transition:background 0.15s;
+}
+.paytype-header:hover{background:var(--gray-100);}
+.paytype-row.selected .paytype-header{background:#eef3ff;}
+
+.check-box{
+  width:20px;height:20px;border-radius:5px;flex-shrink:0;
+  border:2px solid var(--gray-200);display:flex;
+  align-items:center;justify-content:center;transition:all 0.2s;
+}
+.paytype-row.selected .check-box{background:var(--blue);border-color:var(--blue);}
+.check-icon{display:none;color:#fff;font-size:12px;font-weight:900;line-height:1;}
+.paytype-row.selected .check-icon{display:block;}
+
+.paytype-name{font-size:14px;font-weight:500;color:var(--text);flex:1;}
+.paytype-row.selected .paytype-name{font-weight:600;color:var(--navy);}
+
+/* Amount zone — slides open when selected */
+.paytype-amount-zone{
+  display:none;
+  padding:0 14px 14px 46px;
+  animation:fadeIn 0.2s ease;
+}
+.paytype-row.selected .paytype-amount-zone{display:block;}
+
+.amount-inner{position:relative;}
+.amount-prefix-sm{
+  position:absolute;left:12px;top:50%;transform:translateY(-50%);
+  font-size:13px;font-weight:700;color:var(--blue);pointer-events:none;
+}
+.amount-inner input[type=text]{
+  padding:9px 12px 9px 34px;font-size:15px;font-weight:600;
+  background:#f8faff;
+}
+.amount-inner input[type=text]:focus{background:#fff;}
+
+.other-sub{margin-bottom:8px;}
+
+/* TOTAL BAR */
+.total-bar{
+  margin-top:12px;
+  background:linear-gradient(135deg,var(--navy) 0%,var(--blue) 100%);
+  border-radius:var(--radius-sm);
+  padding:14px 18px;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+}
+.total-label{color:rgba(255,255,255,0.75);font-size:13px;font-weight:600;}
+.total-value{color:#fff;font-size:21px;font-weight:700;letter-spacing:0.3px;}
+.total-value span{font-size:13px;font-weight:400;opacity:0.7;margin-right:4px;}
+
+/* FILE UPLOAD */
+.notice{
+  background:#fff8e6;border:1px solid #f0c040;
+  border-left:4px solid var(--accent);border-radius:var(--radius-sm);
+  padding:10px 14px;font-size:12.5px;color:#7a5c00;
+  margin-bottom:16px;line-height:1.6;
+}
+.file-upload-group{margin-bottom:12px;}
+.file-upload-label{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:var(--gray-600);margin-bottom:6px;}
+.file-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:var(--navy);color:#fff;}
+.file-drop{
+  border:2px dashed var(--gray-200);border-radius:var(--radius-sm);
+  padding:18px 14px;text-align:center;cursor:pointer;
+  transition:all 0.2s;position:relative;background:var(--gray-100);
+}
+.file-drop:hover,.file-drop.drag{border-color:var(--blue);background:#f0f5ff;}
+.file-drop.uploaded{border-color:var(--success);background:#f0faf5;border-style:solid;}
+.file-drop input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.file-icon{font-size:26px;margin-bottom:5px;}
+.file-drop-text{font-size:13px;color:var(--gray-400);}
+.file-drop-text strong{color:var(--blue);}
+.file-name-display{font-size:13px;font-weight:600;color:var(--success);margin-top:4px;display:none;}
+.file-name-display.show{display:block;}
+
+/* BUTTONS */
+.btn-row{display:flex;gap:10px;justify-content:flex-end;margin-top:22px;}
+.btn{
+  padding:12px 26px;border-radius:var(--radius-sm);font-family:inherit;
+  font-size:14px;font-weight:700;cursor:pointer;transition:all 0.2s;border:none;
+}
+.btn-outline{background:transparent;border:1.5px solid var(--gray-200);color:var(--gray-600);}
+.btn-outline:hover{border-color:var(--blue);color:var(--blue);background:#f0f5ff;}
+.btn-primary{background:var(--blue);color:#fff;box-shadow:0 4px 16px rgba(30,77,183,0.3);}
+.btn-primary:hover{background:var(--navy-mid);transform:translateY(-1px);}
+.btn-success{background:linear-gradient(135deg,#2ecc71,#27ae60);color:#fff;box-shadow:0 4px 16px rgba(39,174,96,0.3);}
+.btn-success:hover{transform:translateY(-1px);}
+
+/* REVIEW */
+.review-section{margin-bottom:16px;}
+.review-title{
+  font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  color:var(--gray-400);margin-bottom:8px;padding-bottom:6px;
+  border-bottom:1px solid var(--gray-200);
+}
+.review-row{display:flex;gap:8px;padding:7px 0;border-bottom:1px solid var(--gray-100);font-size:13.5px;}
+.review-row:last-child{border-bottom:none;}
+.review-key{flex:0 0 150px;color:var(--gray-600);font-weight:500;}
+.review-val{flex:1;color:var(--text);font-weight:600;word-break:break-word;}
+.rv-items-table{width:100%;border-collapse:collapse;font-size:13px;}
+.rv-items-table td{padding:6px 8px;}
+.rv-items-table td:last-child{text-align:right;font-weight:700;color:var(--blue);white-space:nowrap;}
+.rv-items-table tr:not(:last-child) td{border-bottom:1px solid var(--gray-100);}
+.rv-total-row td{font-weight:700!important;color:var(--navy)!important;border-top:2px solid var(--gray-200)!important;font-size:14px!important;}
+.file-ok{display:inline-flex;align-items:center;gap:4px;font-size:13px;font-weight:600;color:var(--success);}
+
+/* SUCCESS */
+.success-panel{display:none;}
+.success-panel.active{display:block;text-align:center;padding:40px 20px;}
+.success-icon{font-size:56px;margin-bottom:14px;animation:pop 0.4s ease;}
+@keyframes pop{0%{transform:scale(0.5);opacity:0}80%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
+.success-title{font-size:22px;font-weight:700;color:var(--navy);margin-bottom:8px;}
+.success-sub{font-size:14px;color:var(--gray-600);margin-bottom:20px;line-height:1.7;}
+.ref-box{
+  display:inline-block;background:var(--gray-100);
+  border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);
+  padding:10px 24px;font-size:14px;font-weight:700;color:var(--navy);letter-spacing:1px;
+}
+
+/* LOADING */
+.loading-overlay{
+  position:fixed;inset:0;background:rgba(15,32,68,0.7);
+  display:none;align-items:center;justify-content:center;
+  z-index:999;backdrop-filter:blur(4px);
+}
+.loading-overlay.show{display:flex;}
+.spinner{
+  width:48px;height:48px;border:4px solid rgba(255,255,255,0.2);
+  border-top-color:var(--accent);border-radius:50%;
+  animation:spin 0.8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* RESPONSIVE */
+@media(max-width:580px){
+  body{padding:12px 8px 48px;}
+  .header{padding:20px 18px 18px;}
+  .header h1{font-size:18px;}
+  .stepper{padding:14px 14px;}
+  .step-label{font-size:10.5px;}
+  .form-body{padding:18px 14px;}
+  .review-row{flex-direction:column;gap:2px;}
+  .review-key{flex:none;}
+  .btn-row{flex-direction:column-reverse;}
+  .btn{width:100%;text-align:center;}
+  .total-value{font-size:17px;}
+  .paytype-amount-zone{padding-left:34px;}
+}
+</style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+</div>
+
+<div class="card">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-tag">HR · Payroll Request</div>
+    <h1>แบบฟอร์มขอเบิกตกเบิกเงินเดือน</h1>
+    <p>กรุณากรอกข้อมูลให้ครบถ้วนเพื่อดำเนินการ</p>
+  </div>
+
+  <!-- STEPPER -->
+  <div class="stepper">
+    <div class="step-item active" id="step-tab-1">
+      <div class="step-circle" id="sc1">1</div>
+      <div class="step-label">ข้อมูล<br>พนักงาน</div>
+    </div>
+    <div class="step-line" id="line-1-2"></div>
+    <div class="step-item" id="step-tab-2">
+      <div class="step-circle" id="sc2">2</div>
+      <div class="step-label">รายละเอียด<br>การตกเบิก</div>
+    </div>
+    <div class="step-line" id="line-2-3"></div>
+    <div class="step-item" id="step-tab-3">
+      <div class="step-circle" id="sc3">3</div>
+      <div class="step-label">ตรวจสอบ<br>& ส่งคำขอ</div>
+    </div>
+  </div>
+
+  <!-- FORM BODY -->
+  <div class="form-body">
+
+    <!-- ======== STEP 1 ======== -->
+    <div class="step-panel active" id="panel-1">
+      <div class="section-title">👤 ข้อมูลพนักงาน</div>
+
+      <div class="field-group">
+        <label>รหัสพนักงาน (Employee ID) <span class="req">*</span></label>
+        <input type="text" id="empId" placeholder="เช่น 10042" inputmode="numeric">
+        <div class="error-msg" id="err-empId">กรุณากรอกรหัสพนักงาน (ตัวเลขเท่านั้น)</div>
+      </div>
+
+      <div class="field-group">
+        <label>ชื่อ - นามสกุล <span class="req">*</span></label>
+        <input type="text" id="fullName" placeholder="เช่น สมชาย ใจดี">
+        <div class="error-msg" id="err-fullName">กรุณากรอกชื่อ-นามสกุล</div>
+      </div>
+
+      <div class="field-group">
+        <label>หน่วยงาน / แผนก <span class="req">*</span></label>
+        <input type="text" id="department" placeholder="เช่น ฝ่ายบัญชีและการเงิน, แผนกปฏิบัติการ">
+        <div class="error-msg" id="err-department">กรุณากรอกหน่วยงาน/แผนก</div>
+      </div>
+
+      <div class="field-group">
+        <label>เบอร์โทรติดต่อกลับ <span class="req">*</span></label>
+        <input type="tel" id="phone" placeholder="0xxxxxxxxx" maxlength="10" inputmode="numeric">
+        <div class="error-msg" id="err-phone">กรุณากรอกเบอร์โทร 10 หลัก (ตัวเลขเท่านั้น)</div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="nextStep(1)">ถัดไป →</button>
+      </div>
+    </div>
+
+    <!-- ======== STEP 2 ======== -->
+    <div class="step-panel" id="panel-2">
+      <div class="section-title">📋 รายละเอียดการตกเบิก</div>
+
+      <div class="field-group">
+        <label>
+          เลือกประเภทและกรอกยอดเงิน <span class="req">*</span>
+          <small style="color:var(--gray-400);font-weight:400;margin-left:4px;">(เลือกได้มากกว่า 1 รายการ)</small>
+        </label>
+
+        <div class="paytype-list" id="paytypeList"></div>
+
+        <div class="error-msg" id="err-paytype">กรุณาเลือกประเภทการตกเบิกและกรอกยอดเงินอย่างน้อย 1 รายการ</div>
+
+        <div class="total-bar">
+          <div class="total-label">💰 ยอดรวมทั้งหมด</div>
+          <div class="total-value"><span>฿</span><span id="totalDisplay">0.00</span></div>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label>รายละเอียดเพิ่มเติม <small style="color:var(--gray-400);font-weight:400">(ไม่บังคับ)</small></label>
+        <textarea id="remarks" placeholder="เช่น ระบุงวดเดือนที่ขอตกเบิก / เหตุผลที่ยังไม่ได้รับเงิน / ข้อมูลอื่นๆ..."></textarea>
+      </div>
+
+      <div class="notice">
+        📎 <strong>กรุณาแนบเอกสารให้ครบทั้ง 2 รายการ</strong> ก่อนส่งคำขอ<br>
+        รองรับไฟล์ PDF, JPG, PNG ขนาดไม่เกิน 10 MB ต่อไฟล์
+      </div>
+
+      <div class="file-upload-group">
+        <div class="file-upload-label">
+          <span class="file-badge">เอกสาร 1</span>
+          ใบลงเวลา (Timesheet) <span class="req">*</span>
+        </div>
+        <div class="file-drop" id="drop-ts"
+          ondragover="handleDrag(event,'drop-ts')"
+          ondragleave="handleDragLeave('drop-ts')"
+          ondrop="handleDrop(event,'file-ts','name-ts','drop-ts')">
+          <input type="file" id="file-ts" accept=".pdf,.jpg,.jpeg,.png"
+            onchange="handleFile('file-ts','name-ts','drop-ts')">
+          <div class="file-icon">📄</div>
+          <div class="file-drop-text">ลากไฟล์มาวาง หรือ <strong>คลิกเพื่อเลือกไฟล์</strong></div>
+          <div class="file-name-display" id="name-ts"></div>
+        </div>
+        <div class="error-msg" id="err-ts">กรุณาแนบใบลงเวลา (Timesheet)</div>
+      </div>
+
+      <div class="file-upload-group">
+        <div class="file-upload-label">
+          <span class="file-badge">เอกสาร 2</span>
+          สลิปเงินเดือน (Payslip) <span class="req">*</span>
+        </div>
+        <div class="file-drop" id="drop-ps"
+          ondragover="handleDrag(event,'drop-ps')"
+          ondragleave="handleDragLeave('drop-ps')"
+          ondrop="handleDrop(event,'file-ps','name-ps','drop-ps')">
+          <input type="file" id="file-ps" accept=".pdf,.jpg,.jpeg,.png"
+            onchange="handleFile('file-ps','name-ps','drop-ps')">
+          <div class="file-icon">💳</div>
+          <div class="file-drop-text">ลากไฟล์มาวาง หรือ <strong>คลิกเพื่อเลือกไฟล์</strong></div>
+          <div class="file-name-display" id="name-ps"></div>
+        </div>
+        <div class="error-msg" id="err-ps">กรุณาแนบสลิปเงินเดือน (Payslip)</div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-outline" onclick="prevStep(2)">← ย้อนกลับ</button>
+        <button class="btn btn-primary" onclick="nextStep(2)">ตรวจสอบข้อมูล →</button>
+      </div>
+    </div>
+
+    <!-- ======== STEP 3: REVIEW ======== -->
+    <div class="step-panel" id="panel-3">
+      <div class="section-title">🔍 ตรวจสอบข้อมูลก่อนส่ง</div>
+
+      <div class="review-section">
+        <div class="review-title">ข้อมูลพนักงาน</div>
+        <div class="review-row"><div class="review-key">รหัสพนักงาน</div><div class="review-val" id="rv-empId">-</div></div>
+        <div class="review-row"><div class="review-key">ชื่อ-นามสกุล</div><div class="review-val" id="rv-fullName">-</div></div>
+        <div class="review-row"><div class="review-key">หน่วยงาน/แผนก</div><div class="review-val" id="rv-department">-</div></div>
+        <div class="review-row"><div class="review-key">เบอร์โทรติดต่อ</div><div class="review-val" id="rv-phone">-</div></div>
+      </div>
+
+      <div class="review-section">
+        <div class="review-title">รายละเอียดการตกเบิก</div>
+        <div class="review-row" style="display:block;padding:8px 0;">
+          <div id="rv-items">-</div>
+        </div>
+        <div class="review-row"><div class="review-key">รายละเอียดเพิ่มเติม</div><div class="review-val" id="rv-remarks">-</div></div>
+      </div>
+
+      <div class="review-section">
+        <div class="review-title">เอกสารแนบ</div>
+        <div class="review-row"><div class="review-key">ใบลงเวลา (TS)</div><div class="review-val" id="rv-ts">-</div></div>
+        <div class="review-row"><div class="review-key">สลิปเงินเดือน</div><div class="review-val" id="rv-ps">-</div></div>
+      </div>
+
+      <div class="notice">
+        ⚠️ กรุณาตรวจสอบข้อมูลให้ถูกต้องก่อนกดส่ง เมื่อส่งแล้วจะไม่สามารถแก้ไขได้
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-outline" onclick="prevStep(3)">← แก้ไขข้อมูล</button>
+        <button class="btn btn-success" onclick="submitForm()">✅ ส่งคำขอ</button>
+      </div>
+    </div>
+
+    <!-- ======== SUCCESS ======== -->
+    <div class="success-panel" id="panel-success">
+      <div class="success-icon">🎉</div>
+      <div class="success-title">ส่งคำขอสำเร็จ!</div>
+      <div class="success-sub">
+        คำขอเบิกตกเบิกของคุณได้รับการบันทึกแล้ว<br>
+        ทีม HR จะดำเนินการและแจ้งผลผ่านเบอร์โทรที่ให้ไว้
+      </div>
+      <div class="ref-box" id="refCode">กำลังสร้างเลขอ้างอิง...</div>
+      <br><br>
+      <button class="btn btn-outline" onclick="resetForm()">ส่งคำขอใหม่</button>
+    </div>
+
+  </div><!-- /form-body -->
+</div><!-- /card -->
+
+<script>
+// ============================================================
+// CONFIG — ใส่ URL ของ Google Apps Script Web App
+// ============================================================
+const APPS_SCRIPT_URL = 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE';
+
+// ============================================================
+// PAY TYPE DEFINITIONS
+// ============================================================
+const PAY_TYPES = [
+  { id:'wage',     label:'ค่าแรง',                     icon:'👷' },
+  { id:'travel',   label:'ค่าเดินทาง',                 icon:'🚗' },
+  { id:'ot',       label:'ค่าล่วงเวลา (OT)',           icon:'⏰' },
+  { id:'holiday',  label:'ค่าแรงวันหยุดนักขัตฤกษ์',   icon:'🎌' },
+  { id:'diligent', label:'เบี้ยขยัน',                  icon:'⭐' },
+  { id:'offday',   label:'ค่าวัน Off',                 icon:'📅' },
+  { id:'other',    label:'อื่นๆ (โปรดระบุ)',           icon:'📝' },
+];
+
+// ============================================================
+// BUILD PAY TYPE ROWS
+// ============================================================
+function buildPaytypeList() {
+  const list = document.getElementById('paytypeList');
+  list.innerHTML = '';
+  PAY_TYPES.forEach(pt => {
+    const isOther = pt.id === 'other';
+    const row = document.createElement('div');
+    row.className = 'paytype-row';
+    row.id = 'row-' + pt.id;
+    row.innerHTML = `
+      <div class="paytype-header" onclick="togglePaytype('${pt.id}')">
+        <div class="check-box"><span class="check-icon">✓</span></div>
+        <span class="paytype-name">${pt.icon} ${pt.label}</span>
+      </div>
+      <div class="paytype-amount-zone">
+        ${isOther ? `<div class="other-sub">
+          <input type="text" id="otherLabel" placeholder="ระบุรายละเอียด เช่น ค่าเครื่องแบบ, ค่าที่พัก..." style="margin-bottom:8px;">
+        </div>` : ''}
+        <div class="amount-inner">
+          <span class="amount-prefix-sm">฿</span>
+          <input type="text" id="amt-${pt.id}"
+            placeholder="0.00" inputmode="decimal"
+            oninput="formatAmountInput(this); recalcTotal();">
+        </div>
+        <div class="error-msg" id="err-amt-${pt.id}">กรุณากรอกจำนวนเงินให้ถูกต้อง</div>
+      </div>
+    `;
+    list.appendChild(row);
+  });
+}
+
+// ============================================================
+// TOGGLE PAY TYPE ROW
+// ============================================================
+function togglePaytype(id) {
+  const row = document.getElementById('row-' + id);
+  const wasOn = row.classList.contains('selected');
+  row.classList.toggle('selected', !wasOn);
+  if (wasOn) {
+    const inp = document.getElementById('amt-' + id);
+    if (inp) inp.value = '';
+    clearErr2('amt-' + id);
+    recalcTotal();
+  } else {
+    setTimeout(() => {
+      const inp = document.getElementById('amt-' + id);
+      if (inp) inp.focus();
+    }, 100);
+    clearErr2('paytype');
+  }
+}
+
+// ============================================================
+// AMOUNT FORMATTING + TOTAL
+// ============================================================
+function formatAmountInput(el) {
+  let v = el.value.replace(/[^0-9.]/g, '');
+  const parts = v.split('.');
+  if (parts.length > 2) v = parts[0] + '.' + parts.slice(1).join('');
+  const intPart = (parts[0] || '').replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  el.value = parts.length > 1 ? intPart + '.' + parts[1] : intPart;
+}
+
+function parseAmt(id) {
+  const el = document.getElementById('amt-' + id);
+  return el ? (parseFloat(el.value.replace(/,/g, '')) || 0) : 0;
+}
+
+function recalcTotal() {
+  let total = 0;
+  PAY_TYPES.forEach(pt => {
+    if (document.getElementById('row-' + pt.id)?.classList.contains('selected'))
+      total += parseAmt(pt.id);
+  });
+  document.getElementById('totalDisplay').textContent =
+    total.toLocaleString('th-TH', { minimumFractionDigits:2, maximumFractionDigits:2 });
+}
+
+// ============================================================
+// STEP NAVIGATION
+// ============================================================
+function goToStep(step) {
+  document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + step).classList.add('active');
+  for (let i = 1; i <= 3; i++) {
+    const tab = document.getElementById('step-tab-' + i);
+    const sc  = document.getElementById('sc' + i);
+    tab.classList.remove('active','done'); sc.textContent = i;
+    if (i < step)        { tab.classList.add('done'); sc.textContent = '✓'; }
+    else if (i === step)   tab.classList.add('active');
+  }
+  for (let i = 1; i <= 2; i++) {
+    const line = document.getElementById('line-' + i + '-' + (i+1));
+    if (line) line.classList.toggle('done', i < step);
+  }
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+
+function nextStep(from) {
+  if (from === 1 && !validateStep1()) return;
+  if (from === 2 && !validateStep2()) return;
+  if (from === 2) buildReview();
+  goToStep(from + 1);
+}
+function prevStep(from) { goToStep(from - 1); }
+
+// ============================================================
+// VALIDATION HELPERS
+// ============================================================
+function showErr2(id, show) {
+  const el = document.getElementById('err-' + id);
+  if (el) el.classList.toggle('show', show);
+  const inp = document.getElementById(id);
+  if (inp) inp.classList.toggle('error', show);
+}
+function clearErr2(id) { showErr2(id, false); }
+
+function validateStep1() {
+  const empId    = document.getElementById('empId').value.trim();
+  const fullName = document.getElementById('fullName').value.trim();
+  const dept     = document.getElementById('department').value.trim();
+  const phone    = document.getElementById('phone').value.trim();
+  let ok = true;
+  const empOk = /^\d+$/.test(empId) && empId.length > 0;
+  showErr2('empId', !empOk);       if (!empOk)    ok = false;
+  showErr2('fullName', !fullName); if (!fullName) ok = false;
+  showErr2('department', !dept);   if (!dept)     ok = false;
+  const phoneOk = /^\d{10}$/.test(phone);
+  showErr2('phone', !phoneOk);     if (!phoneOk)  ok = false;
+  return ok;
+}
+
+function validateStep2() {
+  let ok = true;
+  const selected = PAY_TYPES.filter(pt =>
+    document.getElementById('row-' + pt.id)?.classList.contains('selected')
+  );
+  if (selected.length === 0) {
+    showErr2('paytype', true); ok = false;
+  } else {
+    clearErr2('paytype');
+    selected.forEach(pt => {
+      const v = parseAmt(pt.id);
+      const amtOk = v > 0;
+      const errEl = document.getElementById('err-amt-' + pt.id);
+      const inpEl = document.getElementById('amt-' + pt.id);
+      if (errEl) errEl.classList.toggle('show', !amtOk);
+      if (inpEl) inpEl.classList.toggle('error', !amtOk);
+      if (!amtOk) ok = false;
+      // other label required
+      if (pt.id === 'other') {
+        const lbl = document.getElementById('otherLabel');
+        const lblOk = lbl && lbl.value.trim().length > 0;
+        if (lbl) lbl.classList.toggle('error', !lblOk);
+        if (!lblOk) ok = false;
+      }
+    });
+  }
+  const tsOk = document.getElementById('file-ts').files.length > 0;
+  showErr2('ts', !tsOk); if (!tsOk) ok = false;
+  const psOk = document.getElementById('file-ps').files.length > 0;
+  showErr2('ps', !psOk); if (!psOk) ok = false;
+  return ok;
+}
+
+// ============================================================
+// BUILD REVIEW
+// ============================================================
+function buildReview() {
+  document.getElementById('rv-empId').textContent      = document.getElementById('empId').value.trim();
+  document.getElementById('rv-fullName').textContent   = document.getElementById('fullName').value.trim();
+  document.getElementById('rv-department').textContent = document.getElementById('department').value.trim();
+  document.getElementById('rv-phone').textContent      = document.getElementById('phone').value.trim();
+
+  const selected = PAY_TYPES.filter(pt =>
+    document.getElementById('row-' + pt.id)?.classList.contains('selected')
+  );
+  let total = 0;
+  let html = `<table class="rv-items-table">`;
+  selected.forEach(pt => {
+    const amt = parseAmt(pt.id);
+    total += amt;
+    let lbl = pt.label;
+    if (pt.id === 'other') {
+      const extra = document.getElementById('otherLabel')?.value.trim();
+      if (extra) lbl = `อื่นๆ: ${extra}`;
+    }
+    html += `<tr><td>${pt.icon} ${lbl}</td><td>฿ ${amt.toLocaleString('th-TH',{minimumFractionDigits:2})}</td></tr>`;
+  });
+  html += `<tr class="rv-total-row"><td>💰 ยอดรวมทั้งหมด</td><td>฿ ${total.toLocaleString('th-TH',{minimumFractionDigits:2})}</td></tr></table>`;
+  document.getElementById('rv-items').innerHTML = html;
+
+  const rem = document.getElementById('remarks').value.trim();
+  document.getElementById('rv-remarks').textContent = rem || '(ไม่มี)';
+
+  const tsF = document.getElementById('file-ts').files[0];
+  const psF = document.getElementById('file-ps').files[0];
+  document.getElementById('rv-ts').innerHTML = `<span class="file-ok">✓ ${tsF?.name || '-'}</span>`;
+  document.getElementById('rv-ps').innerHTML = `<span class="file-ok">✓ ${psF?.name || '-'}</span>`;
+}
+
+// ============================================================
+// FILE UPLOAD
+// ============================================================
+function handleFile(inputId, nameId, dropId) {
+  const f = document.getElementById(inputId).files[0];
+  if (!f) return;
+  if (f.size > 10*1024*1024) { alert('ไฟล์ขนาดใหญ่เกิน 10 MB'); return; }
+  document.getElementById(nameId).textContent = '✓ ' + f.name;
+  document.getElementById(nameId).classList.add('show');
+  document.getElementById(dropId).classList.add('uploaded');
+  showErr2(inputId === 'file-ts' ? 'ts' : 'ps', false);
+}
+function handleDrag(e,id)    { e.preventDefault(); document.getElementById(id).classList.add('drag'); }
+function handleDragLeave(id) { document.getElementById(id).classList.remove('drag'); }
+function handleDrop(e,inId,nameId,dropId) {
+  e.preventDefault(); document.getElementById(dropId).classList.remove('drag');
+  const files = e.dataTransfer.files; if (!files.length) return;
+  const dt = new DataTransfer(); dt.items.add(files[0]);
+  document.getElementById(inId).files = dt.files;
+  handleFile(inId, nameId, dropId);
+}
+
+// ============================================================
+// DIGIT-ONLY INPUTS
+// ============================================================
+document.getElementById('phone').addEventListener('input', function() {
+  this.value = this.value.replace(/\D/g,'').slice(0,10);
+});
+document.getElementById('empId').addEventListener('input', function() {
+  this.value = this.value.replace(/\D/g,'');
+});
+
+// ============================================================
+// SUBMIT
+// ============================================================
+async function submitForm() {
+  document.getElementById('loadingOverlay').classList.add('show');
+  const timestamp = new Date().toLocaleString('th-TH', { timeZone:'Asia/Bangkok' });
+  const ref = 'REQ-' + Date.now().toString(36).toUpperCase();
+
+  const selected = PAY_TYPES.filter(pt =>
+    document.getElementById('row-' + pt.id)?.classList.contains('selected')
+  );
+  let totalAmt = 0;
+  const itemsArr = selected.map(pt => {
+    const amt = parseAmt(pt.id); totalAmt += amt;
+    let lbl = pt.label;
+    if (pt.id === 'other') {
+      const extra = document.getElementById('otherLabel')?.value.trim();
+      if (extra) lbl = `อื่นๆ: ${extra}`;
+    }
+    return `${lbl}: ${amt.toLocaleString('th-TH',{minimumFractionDigits:2})}`;
+  });
+
+  const payload = {
+    timestamp, ref,
+    empId:      document.getElementById('empId').value.trim(),
+    fullName:   document.getElementById('fullName').value.trim(),
+    department: document.getElementById('department').value.trim(),
+    phone:      document.getElementById('phone').value.trim(),
+    payItems:   itemsArr.join(' | '),
+    totalAmount: totalAmt.toFixed(2),
+    remarks:    document.getElementById('remarks').value.trim(),
+    tsFileName: document.getElementById('file-ts').files[0]?.name || '',
+    psFileName: document.getElementById('file-ps').files[0]?.name || '',
+    status:     'รอดำเนินการ'
+  };
+
+  if (APPS_SCRIPT_URL && APPS_SCRIPT_URL !== 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE') {
+    try {
+      await fetch(APPS_SCRIPT_URL, {
+        method:'POST', mode:'no-cors',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(payload)
+      });
+    } catch(e) { console.error(e); }
+  } else {
+    await new Promise(r => setTimeout(r, 1600));
+    console.log('📊 Demo payload:', payload);
+  }
+
+  document.getElementById('loadingOverlay').classList.remove('show');
+  document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
+  document.querySelector('.stepper').style.display = 'none';
+  document.getElementById('panel-success').classList.add('active');
+  document.getElementById('refCode').textContent = '🔖 เลขอ้างอิง: ' + ref;
+}
+
+// ============================================================
+// RESET
+// ============================================================
+function resetForm() {
+  document.querySelector('.stepper').style.display = 'flex';
+  document.getElementById('panel-success').classList.remove('active');
+  document.querySelectorAll('input[type=text],input[type=tel],textarea').forEach(el => el.value = '');
+  PAY_TYPES.forEach(pt => document.getElementById('row-' + pt.id)?.classList.remove('selected'));
+  recalcTotal();
+  ['file-ts','file-ps'].forEach(id => { document.getElementById(id).value = ''; });
+  ['name-ts','name-ps'].forEach(id => {
+    document.getElementById(id).classList.remove('show');
+    document.getElementById(id).textContent = '';
+  });
+  ['drop-ts','drop-ps'].forEach(id => document.getElementById(id).classList.remove('uploaded'));
+  document.querySelectorAll('.error-msg').forEach(el => el.classList.remove('show'));
+  document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
+  goToStep(1);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+buildPaytypeList();
+</script>
+</body>
+</html>
